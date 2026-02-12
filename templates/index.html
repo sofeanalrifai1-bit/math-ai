@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Math AI</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        h1 {
+            font-size: 40px;
+        }
+
+        input {
+            padding: 10px;
+            width: 300px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background-color: #3b82f6;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .card {
+            margin-top: 30px;
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚀 Math AI</h1>
+
+<form method="POST">
+    <input type="text" name="problem" placeholder="Enter equation like 2*x+5=15" required>
+    <br><br>
+    <button type="submit">Solve</button>
+</form>
+
+{% if solution %}
+<div class="card">
+    <h2>Answer:</h2>
+    <p>{{ solution }}</p>
+
+    <h3>Explanation:</h3>
+    <pre>{{ steps }}</pre>
+</div>
+{% endif %}
+
+</body>
+</html>
