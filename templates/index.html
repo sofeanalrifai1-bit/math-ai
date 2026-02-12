@@ -1,181 +1,192 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Math AI</title>
+<title>Math AI</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+body {
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#0f172a;
+    color:white;
+    display:flex;
+    height:100vh;
+}
 
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #0f172a;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+/* SIDEBAR */
 
-        header {
-            padding: 20px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 600;
-            background-color: #111827;
-            border-bottom: 1px solid #1f2937;
-            position: relative;
-        }
+.sidebar {
+    width:230px;
+    background:#111827;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+}
 
-        .top-right {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 14px;
-        }
+.sidebar h2 {
+    margin-bottom:25px;
+    text-align:center;
+}
 
-        .top-right a {
-            color: white;
-            text-decoration: none;
-            margin-left: 10px;
-        }
+.sidebar a {
+    padding:12px;
+    margin-bottom:10px;
+    background:#1e293b;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    text-align:center;
+    transition:0.2s;
+}
 
-        .top-right a:hover {
-            color: #22c55e;
-        }
+.sidebar a:hover {
+    background:#2563eb;
+}
 
-        .logout {
-            color: #ef4444;
-        }
+.clear-btn {
+    background:#f59e0b;
+}
 
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 30px 20px 160px 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
+.logout-btn {
+    background:#ef4444;
+}
 
-        .message {
-            margin-bottom: 20px;
-            line-height: 1.6;
-            font-size: 16px;
-            max-width: 75%;
-            padding: 14px 18px;
-            border-radius: 16px;
-            animation: fadeIn 0.2s ease-in-out;
-            white-space: pre-line;
-        }
+/* MAIN AREA */
 
-        .user {
-            background-color: #2563eb;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
+.main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
 
-        .bot {
-            background-color: #1e293b;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
+/* HEADER */
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.header {
+    padding:20px;
+    background:#111827;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #1f2937;
+}
 
-        .input-wrapper {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #0f172a;
-            padding: 20px;
-            border-top: 1px solid #1f2937;
-        }
+/* CHAT AREA */
 
-        .input-box {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            gap: 10px;
-        }
+.chat {
+    flex:1;
+    padding:30px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+}
 
-        input {
-            flex: 1;
-            padding: 14px 18px;
-            border-radius: 25px;
-            border: 1px solid #1f2937;
-            background-color: #1e293b;
-            color: white;
-            font-size: 15px;
-        }
+/* MESSAGES */
 
-        input:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
+.user-box {
+    align-self:flex-end;
+    background:#2563eb;
+    padding:14px;
+    border-radius:15px;
+    margin-bottom:10px;
+    max-width:70%;
+    word-wrap:break-word;
+}
 
-        button {
-            padding: 12px 22px;
-            border-radius: 25px;
-            border: none;
-            background-color: #22c55e;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-        }
+.bot-box {
+    align-self:flex-start;
+    background:#1e293b;
+    padding:14px;
+    border-radius:15px;
+    margin-bottom:20px;
+    max-width:70%;
+    white-space:pre-line;
+    word-wrap:break-word;
+}
 
-        button:hover {
-            opacity: 0.9;
-        }
+/* INPUT AREA */
 
-        .explanation-box {
-            background-color: #1e293b;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-    </style>
+form {
+    display:flex;
+    padding:20px;
+    background:#111827;
+    border-top:1px solid #1f2937;
+}
+
+input {
+    flex:1;
+    padding:15px;
+    border-radius:25px;
+    border:none;
+    outline:none;
+    font-size:15px;
+}
+
+button {
+    padding:15px 25px;
+    margin-left:10px;
+    border:none;
+    border-radius:25px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover {
+    opacity:0.9;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-    🤖 Math AI
+<!-- SIDEBAR -->
 
-    <div class="top-right">
-        <a href="/set_language/no">🇳🇴</a>
-        <a href="/set_language/en">🇬🇧</a>
-        <a href="/set_language/es">🇪🇸</a>
-        <a href="/logout" class="logout">Logout</a>
+<div class="sidebar">
+    <h2>📐 Modes</h2>
+
+    <a href="/set_mode/calculator">🧮 Calculator</a>
+    <a href="/set_mode/algebra">📐 Algebra</a>
+    <a href="/set_mode/likninger">🟰 Likninger</a>
+    <a href="/set_mode/brok">➗ Brøk</a>
+
+    <a href="/clear_chat" class="clear-btn">🗑 Clean Chat</a>
+
+    <a href="/logout" class="logout-btn">Logout</a>
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <div class="header">
+        <div>🤖 Math AI</div>
+        <div>Mode: {{ mode }}</div>
     </div>
-</header>
 
-<div class="chat-container">
+    <div class="chat" id="chat">
 
-    {% if explanation %}
-        <div class="message user">
-            {{ request.form.expression }}
-        </div>
+        {% for message in chat %}
+            <div class="user-box">
+                {{ message.user }}
+            </div>
 
-        <div class="message bot">
-            {{ explanation }}
-        </div>
-    {% endif %}
+            <div class="bot-box">
+                {{ message.bot }}
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <form method="POST">
+        <input name="expression" placeholder="Write math like 2x+5=15 or 3*22" required>
+        <button type="submit">Solve</button>
+    </form>
 
 </div>
 
-<form method="POST" class="input-wrapper">
-    <div class="input-box">
-        <input type="text" name="expression" placeholder="Write math here..." required>
-        <button type="submit">Send</button>
-    </div>
-</form>
-
 <script>
-    const chat = document.querySelector(".chat-container");
+    const chat = document.getElementById("chat");
     chat.scrollTop = chat.scrollHeight;
 </script>
 
