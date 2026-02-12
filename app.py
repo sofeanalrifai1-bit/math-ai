@@ -1,55 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Math AI Login</title>
-<style>
 body{
     margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(-45deg,#0f172a,#1e293b,#0ea5e9,#9333ea);
+    font-family:Arial, sans-serif;
+    color:white;
+    background:linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#0f2027);
     background-size:400% 400%;
     animation:gradient 15s ease infinite;
-    font-family:Arial;
 }
+
 @keyframes gradient{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
 }
-.box{
-    background:white;
-    padding:40px;
+
+.container{
+    width:60%;
+    margin:auto;
+    margin-top:80px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
+    padding:30px;
     border-radius:20px;
-    text-align:center;
-    width:300px;
 }
+
 input{
-    width:100%;
+    width:75%;
     padding:12px;
-    margin:10px 0;
-}
-button{
-    padding:10px 20px;
-    background:#0ea5e9;
     border:none;
-    color:white;
-    border-radius:8px;
+    border-radius:10px;
+}
+
+button{
+    padding:12px 18px;
+    border:none;
+    border-radius:10px;
+    background:#00f5ff;
     cursor:pointer;
 }
-a{display:block;margin-top:10px;}
-</style>
-</head>
-<body>
-<div class="box">
-<h2>Math AI Tutor</h2>
-<form method="POST">
-<input name="username" placeholder="Enter name" required>
-<button type="submit">Login</button>
-</form>
-<a href="/skip">Skip Login</a>
-</div>
-</body>
-</html>
+
+.top{
+    position:absolute;
+    top:20px;
+    right:20px;
+}
