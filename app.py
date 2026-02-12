@@ -1,142 +1,145 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
-import os
+from flask import Flask, render_template, request, redirect, session
+from sympy import symbols, Eq, solve, simplify, expand, factor
+from sympy.parsing.sympy_parser import parse_expr
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.secret_key = "supersecretkey123"
 
-DATABASE = "users.db"
+# =========================
+# LOGIN PAGE
+# =========================
 
-
-# -----------------------
-# Database Setup
-# -----------------------
-def init_db():
-    if not os.path.exists(DATABASE):
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute("""
-            CREATE TABLE users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                language TEXT DEFAULT 'no'
-            )
-        """)
-        conn.commit()
-        conn.close()
-
-init_db()
-
-
-# -----------------------
-# Home
-# -----------------------
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if "user" not in session:
-        return redirect("/login")
-
-    language = session.get("language", "no")
-
-    explanation = ""
-    if request.method == "POST":
-        expression = request.form["expression"]
-
-        if language == "no":
-            explanation = f"Du skrev: {expression}"
-        elif language == "en":
-            explanation = f"You wrote: {expression}"
-        elif language == "es":
-            explanation = f"Escribiste: {expression}"
-
-    return render_template("index.html", explanation=explanation, language=language)
-
-
-# -----------------------
-# Register
-# -----------------------
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = generate_password_hash(request.form["password"])
-
-        try:
-            conn = sqlite3.connect(DATABASE)
-            c = conn.cursor()
-            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            conn.close()
-            return redirect("/login")
-        except:
-            return "Username already exists"
-
-    return render_template("register.html")
-
-
-# -----------------------
-# Login
-# -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username = ?", (username,))
-        user = c.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user[2], password):
-            session["user"] = user[1]
-            session["language"] = user[3]
-            return redirect("/")
-        else:
-            return "Invalid login"
-
+        username = request.form.get("username")
+        session["user"] = username
+        return redirect("/")
     return render_template("login.html")
 
 
-# -----------------------
-# Guest Mode
-# -----------------------
-@app.route("/guest")
-def guest():
+@app.route("/skip")
+def skip():
     session["user"] = "Guest"
-    session["language"] = "no"
     return redirect("/")
 
 
-# -----------------------
-# Change Language
-# -----------------------
-@app.route("/set_language/<lang>")
-def set_language(lang):
-    session["language"] = lang
-
-    if session.get("user") != "Guest":
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute("UPDATE users SET language=? WHERE username=?",
-                  (lang, session["user"]))
-        conn.commit()
-        conn.close()
-
-    return redirect("/")
-
-
-# -----------------------
-# Logout
-# -----------------------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
 
+
+# =========================
+# MODE SWITCH
+# =========================
+
+@app.route("/set_mode/<mode>")
+def set_mode(mode):
+    session["mode"] = mode
+    return redirect("/")
+
+
+# =========================
+# CLEAR CHAT
+# =========================
+
+@app.route("/clear_chat")
+def clear_chat():
+    session["chat"] = []
+    return redirect("/")
+
+
+# =========================
+# MAIN PAGE
+# =========================
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    if "mode" not in session:
+        session["mode"] = "calculator"
+
+    if "chat" not in session:
+        session["chat"] = []
+
+    mode = session["mode"]
+
+    if request.method == "POST":
+
+        expression = request.form["expression"]
+
+        try:
+            x = symbols('x')
+
+            # Fix 2x -> 2*x
+            expression_fixed = expression.replace("^", "**")
+
+            if mode == "likninger":
+
+                if "=" not in expression_fixed:
+                    explanation = "⚠️ You must include = in equation"
+                else:
+                    left, right = expression_fixed.split("=")
+                    eq = Eq(parse_expr(left), parse_expr(right))
+                    solution = solve(eq, x)
+                    explanation = f"""
+Step 1: Move terms
+Step 2: Solve equation
+Solution:
+x = {solution}
+"""
+
+            elif mode == "algebra":
+
+                expr = parse_expr(expression_fixed)
+                explanation = f"""
+Simplified:
+{simplify(expr)}
+
+Expanded:
+{expand(expr)}
+
+Factored:
+{factor(expr)}
+"""
+
+            elif mode == "brok":
+
+                expr = parse_expr(expression_fixed)
+                explanation = f"""
+Fraction simplified:
+{simplify(expr)}
+"""
+
+            else:  # calculator
+
+                expr = parse_expr(expression_fixed)
+                explanation = f"""
+Result:
+{simplify(expr)}
+"""
+
+        except Exception as e:
+            explanation = "❌ Invalid mathematical expression"
+
+        session["chat"].append({
+            "user": expression,
+            "bot": explanation
+        })
+
+    return render_template("index.html",
+                           chat=session["chat"],
+                           mode=mode,
+                           user=session["user"])
+
+
+# =========================
+# RUN
+# =========================
 
 if __name__ == "__main__":
     app.run(debug=True)
