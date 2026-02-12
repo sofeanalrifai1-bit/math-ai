@@ -1,194 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Math AI</title>
-
+<title>Math AI Tutor</title>
 <style>
-body {
+body{
     margin:0;
-    font-family:Arial, sans-serif;
+    font-family:Arial;
+    display:flex;
+}
+.sidebar{
+    width:220px;
     background:#0f172a;
     color:white;
-    display:flex;
+    padding:20px;
     height:100vh;
 }
-
-/* SIDEBAR */
-
-.sidebar {
-    width:230px;
-    background:#111827;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-}
-
-.sidebar h2 {
-    margin-bottom:25px;
-    text-align:center;
-}
-
-.sidebar a {
-    padding:12px;
-    margin-bottom:10px;
-    background:#1e293b;
+.sidebar a{
+    display:block;
     color:white;
     text-decoration:none;
-    border-radius:8px;
-    text-align:center;
-    transition:0.2s;
+    margin:8px 0;
 }
-
-.sidebar a:hover {
-    background:#2563eb;
-}
-
-.clear-btn {
-    background:#f59e0b;
-}
-
-.logout-btn {
-    background:#ef4444;
-}
-
-/* MAIN AREA */
-
-.main {
+.main{
     flex:1;
-    display:flex;
-    flex-direction:column;
-}
-
-/* HEADER */
-
-.header {
     padding:20px;
-    background:#111827;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:1px solid #1f2937;
+    background:#f1f5f9;
 }
-
-/* CHAT AREA */
-
-.chat {
-    flex:1;
-    padding:30px;
+.chat{
+    height:60vh;
     overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-}
-
-/* MESSAGES */
-
-.user-box {
-    align-self:flex-end;
-    background:#2563eb;
-    padding:14px;
-    border-radius:15px;
-    margin-bottom:10px;
-    max-width:70%;
-    word-wrap:break-word;
-}
-
-.bot-box {
-    align-self:flex-start;
-    background:#1e293b;
-    padding:14px;
-    border-radius:15px;
-    margin-bottom:20px;
-    max-width:70%;
-    white-space:pre-line;
-    word-wrap:break-word;
-}
-
-/* INPUT AREA */
-
-form {
-    display:flex;
-    padding:20px;
-    background:#111827;
-    border-top:1px solid #1f2937;
-}
-
-input {
-    flex:1;
+    background:white;
     padding:15px;
-    border-radius:25px;
-    border:none;
-    outline:none;
-    font-size:15px;
+    border-radius:10px;
 }
-
-button {
-    padding:15px 25px;
-    margin-left:10px;
-    border:none;
-    border-radius:25px;
-    background:#22c55e;
-    color:white;
-    cursor:pointer;
-    font-weight:bold;
+.user{
+    text-align:right;
+    margin:10px;
 }
-
-button:hover {
-    opacity:0.9;
+.bot{
+    text-align:left;
+    margin:10px;
+    color:#0ea5e9;
+}
+input{
+    width:80%;
+    padding:12px;
+}
+button{
+    padding:12px;
+}
+.topbar{
+    position:absolute;
+    top:10px;
+    right:20px;
 }
 </style>
 </head>
-
 <body>
 
-<!-- SIDEBAR -->
-
 <div class="sidebar">
-    <h2>📐 Modes</h2>
+<h3>Math AI</h3>
 
-    <a href="/set_mode/calculator">🧮 Calculator</a>
-    <a href="/set_mode/algebra">📐 Algebra</a>
-    <a href="/set_mode/likninger">🟰 Likninger</a>
-    <a href="/set_mode/brok">➗ Brøk</a>
+<h4>Mode</h4>
+<a href="/set_mode/calculator">Calculator</a>
+<a href="/set_mode/likninger">Likninger</a>
+<a href="/set_mode/algebra">Algebra</a>
+<a href="/set_mode/brok">Brøk</a>
 
-    <a href="/clear_chat" class="clear-btn">🗑 Clean Chat</a>
+<h4>Level</h4>
+<a href="/set_level/8">8th</a>
+<a href="/set_level/9">9th</a>
+<a href="/set_level/10">10th</a>
 
-    <a href="/logout" class="logout-btn">Logout</a>
+<h4>Practice</h4>
+<a href="/practice">Generate Practice</a>
+
+<h4>Other</h4>
+<a href="/clear_chat">Clear Chat</a>
+<a href="/logout">Logout</a>
 </div>
-
-<!-- MAIN -->
 
 <div class="main">
-
-    <div class="header">
-        <div>🤖 Math AI</div>
-        <div>Mode: {{ mode }}</div>
-    </div>
-
-    <div class="chat" id="chat">
-
-        {% for message in chat %}
-            <div class="user-box">
-                {{ message.user }}
-            </div>
-
-            <div class="bot-box">
-                {{ message.bot }}
-            </div>
-        {% endfor %}
-
-    </div>
-
-    <form method="POST">
-        <input name="expression" placeholder="Write math like 2x+5=15 or 3*22" required>
-        <button type="submit">Solve</button>
-    </form>
-
+<div class="topbar">
+User: {{user}} | Level: {{level}}
 </div>
 
-<script>
-    const chat = document.getElementById("chat");
-    chat.scrollTop = chat.scrollHeight;
-</script>
+<h2>{{mode | capitalize}}</h2>
+
+<div class="chat">
+{% for msg in chat %}
+<div class="user">You: {{msg.user}}</div>
+<div class="bot">Tutor: {{msg.bot}}</div>
+{% endfor %}
+
+{% if practice_q %}
+<div class="bot">Practice: {{practice_q}}</div>
+{% endif %}
+</div>
+
+<form method="POST">
+<input name="expression" placeholder="Type math here..." required>
+<button type="submit">Solve</button>
+</form>
+
+</div>
 
 </body>
 </html>
