@@ -1,117 +1,142 @@
-from flask import Flask, render_template, request, session, redirect, url_for
-from sympy import symbols, solve, simplify
-from sympy.parsing.sympy_parser import parse_expr
+from flask import Flask, render_template, request, redirect, session, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+import sqlite3
+import os
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = "super_secret_key"
 
-n = symbols('n')
+DATABASE = "users.db"
 
 
-# -------- LOGIN --------
+# -----------------------
+# Database Setup
+# -----------------------
+def init_db():
+    if not os.path.exists(DATABASE):
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                language TEXT DEFAULT 'no'
+            )
+        """)
+        conn.commit()
+        conn.close()
 
+init_db()
+
+
+# -----------------------
+# Home
+# -----------------------
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if "user" not in session:
+        return redirect("/login")
+
+    language = session.get("language", "no")
+
+    explanation = ""
+    if request.method == "POST":
+        expression = request.form["expression"]
+
+        if language == "no":
+            explanation = f"Du skrev: {expression}"
+        elif language == "en":
+            explanation = f"You wrote: {expression}"
+        elif language == "es":
+            explanation = f"Escribiste: {expression}"
+
+    return render_template("index.html", explanation=explanation, language=language)
+
+
+# -----------------------
+# Register
+# -----------------------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = generate_password_hash(request.form["password"])
+
+        try:
+            conn = sqlite3.connect(DATABASE)
+            c = conn.cursor()
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            conn.close()
+            return redirect("/login")
+        except:
+            return "Username already exists"
+
+    return render_template("register.html")
+
+
+# -----------------------
+# Login
+# -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
+        password = request.form["password"]
 
-        if username.strip() != "":
-            session["username"] = username
-            session["chat"] = []
-            return redirect(url_for("home"))
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        c.execute("SELECT * FROM users WHERE username = ?", (username,))
+        user = c.fetchone()
+        conn.close()
+
+        if user and check_password_hash(user[2], password):
+            session["user"] = user[1]
+            session["language"] = user[3]
+            return redirect("/")
+        else:
+            return "Invalid login"
 
     return render_template("login.html")
 
 
+# -----------------------
+# Guest Mode
+# -----------------------
+@app.route("/guest")
+def guest():
+    session["user"] = "Guest"
+    session["language"] = "no"
+    return redirect("/")
+
+
+# -----------------------
+# Change Language
+# -----------------------
+@app.route("/set_language/<lang>")
+def set_language(lang):
+    session["language"] = lang
+
+    if session.get("user") != "Guest":
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        c.execute("UPDATE users SET language=? WHERE username=?",
+                  (lang, session["user"]))
+        conn.commit()
+        conn.close()
+
+    return redirect("/")
+
+
+# -----------------------
+# Logout
+# -----------------------
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
-
-
-# -------- MAIN --------
-
-@app.route("/", methods=["GET", "POST"])
-def home():
-
-    if "username" not in session:
-        return redirect(url_for("login"))
-
-    if "chat" not in session:
-        session["chat"] = []
-
-    if request.method == "POST":
-
-        original_input = request.form["expression"]
-        user_input = original_input
-
-        try:
-            user_input = user_input.replace("^", "**")
-            user_input = user_input.replace("x", "*")
-            user_input = user_input.replace("X", "*")
-
-            # -------- LIKNINGER --------
-            if "=" in user_input:
-                left, right = user_input.split("=")
-
-                left_expr = parse_expr(left)
-                right_expr = parse_expr(right)
-
-                if left_expr.has(n) or right_expr.has(n):
-                    equation = left_expr - right_expr
-                    solution = solve(equation, n)
-
-                    if solution:
-                        explanation = f"""
-Steg 1: Start med likningen  
-{original_input}
-
-Steg 2: Flytt alt over på én side  
-{left_expr} - ({right_expr}) = 0
-
-Steg 3: Løs for n  
-n = {solution[0]}
-
-Svar: n = {solution[0]}
-"""
-                        result = explanation
-                    else:
-                        result = "Ingen løsning funnet."
-                else:
-                    result = f"Likningen er {'Sann' if left_expr == right_expr else 'Usann'}"
-
-            # -------- VANLIG UTTRYKK --------
-            else:
-                expr = parse_expr(user_input)
-                simplified = simplify(expr)
-
-                explanation = f"""
-Steg 1: Opprinnelig uttrykk  
-{original_input}
-
-Steg 2: Forenkle / samle ledd  
-= {simplified}
-
-Svar: {simplified}
-"""
-                result = explanation
-
-        except:
-            result = "Ugyldig uttrykk."
-
-        session["chat"].append({
-            "user": original_input,
-            "bot": result
-        })
-
-        session.modified = True
-
-    return render_template(
-        "index.html",
-        chat=session.get("chat", []),
-        username=session["username"]
-    )
+    return redirect("/login")
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

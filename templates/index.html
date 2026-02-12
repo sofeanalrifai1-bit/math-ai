@@ -25,12 +25,34 @@
             font-weight: 600;
             background-color: #111827;
             border-bottom: 1px solid #1f2937;
+            position: relative;
+        }
+
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
+        }
+
+        .top-right a {
+            color: white;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        .top-right a:hover {
+            color: #22c55e;
+        }
+
+        .logout {
+            color: #ef4444;
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 30px 20px 180px 20px;
+            padding: 30px 20px 160px 20px;
             max-width: 800px;
             margin: 0 auto;
             width: 100%;
@@ -64,37 +86,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .toolbar-wrapper {
-            position: fixed;
-            bottom: 80px;
-            width: 100%;
-            background: #111827;
-            padding: 10px 0;
-            border-top: 1px solid #1f2937;
-        }
-
-        .math-toolbar {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .math-toolbar button {
-            background: #1e293b;
-            color: white;
-            border: 1px solid #374151;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        .math-toolbar button:hover {
-            background: #2563eb;
-        }
-
         .input-wrapper {
             position: fixed;
             bottom: 0;
@@ -126,7 +117,7 @@
             border-color: #2563eb;
         }
 
-        button.send-btn {
+        button {
             padding: 12px 22px;
             border-radius: 25px;
             border: none;
@@ -136,8 +127,15 @@
             cursor: pointer;
         }
 
-        button.send-btn:hover {
+        button:hover {
             opacity: 0.9;
+        }
+
+        .explanation-box {
+            background-color: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -146,49 +144,38 @@
 
 <header>
     🤖 Math AI
+
+    <div class="top-right">
+        <a href="/set_language/no">🇳🇴</a>
+        <a href="/set_language/en">🇬🇧</a>
+        <a href="/set_language/es">🇪🇸</a>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
 </header>
 
-<div class="chat-container" id="chat">
-    {% for message in chat %}
+<div class="chat-container">
+
+    {% if explanation %}
         <div class="message user">
-            {{ message.user }}
+            {{ request.form.expression }}
         </div>
+
         <div class="message bot">
-            {{ message.bot }}
+            {{ explanation }}
         </div>
-    {% endfor %}
+    {% endif %}
+
 </div>
 
-<!-- Math Toolbar -->
-<div class="toolbar-wrapper">
-    <div class="math-toolbar">
-        <button type="button" onclick="insert('+')">+</button>
-        <button type="button" onclick="insert('-')">−</button>
-        <button type="button" onclick="insert('*')">×</button>
-        <button type="button" onclick="insert('/')">÷</button>
-        <button type="button" onclick="insert('^')">^</button>
-        <button type="button" onclick="insert('(')">(</button>
-        <button type="button" onclick="insert(')')">)</button>
-    </div>
-</div>
-
-<!-- Input -->
 <form method="POST" class="input-wrapper">
     <div class="input-box">
-        <input type="text" name="expression" placeholder="Skriv matte her... f.eks 3n+3n eller 2n+5=15" required>
-        <button type="submit" class="send-btn">Send</button>
+        <input type="text" name="expression" placeholder="Write math here..." required>
+        <button type="submit">Send</button>
     </div>
 </form>
 
 <script>
-    function insert(symbol) {
-        const input = document.querySelector('input[name="expression"]');
-        input.value += symbol;
-        input.focus();
-    }
-
-    // Auto scroll to bottom
-    const chat = document.getElementById("chat");
+    const chat = document.querySelector(".chat-container");
     chat.scrollTop = chat.scrollHeight;
 </script>
 
