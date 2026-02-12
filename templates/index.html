@@ -1,55 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Math AI Tutor</title>
+<title>Robot Math AI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 body{
     margin:0;
+    overflow:hidden;
     font-family:Arial;
-    display:flex;
-}
-.sidebar{
-    width:220px;
-    background:#0f172a;
+    background:#0f2027;
     color:white;
+}
+#robotCanvas{
+    position:absolute;
+    top:0;
+    left:0;
+}
+.chatBox{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    width:60%;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
     padding:20px;
-    height:100vh;
-}
-.sidebar a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    margin:8px 0;
-}
-.main{
-    flex:1;
-    padding:20px;
-    background:#f1f5f9;
-}
-.chat{
-    height:60vh;
-    overflow-y:auto;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-}
-.user{
-    text-align:right;
-    margin:10px;
-}
-.bot{
-    text-align:left;
-    margin:10px;
-    color:#0ea5e9;
+    border-radius:20px;
 }
 input{
     width:80%;
     padding:12px;
+    border:none;
+    border-radius:10px;
 }
 button{
     padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#00f5ff;
 }
-.topbar{
+.messages{
+    max-height:200px;
+    overflow-y:auto;
+    margin-bottom:10px;
+}
+.user{ text-align:right; margin:5px; }
+.bot{ text-align:left; margin:5px; color:#00f5ff; }
+.top{
     position:absolute;
     top:10px;
     right:20px;
@@ -58,52 +55,64 @@ button{
 </head>
 <body>
 
-<div class="sidebar">
-<h3>Math AI</h3>
-
-<h4>Mode</h4>
-<a href="/set_mode/calculator">Calculator</a>
-<a href="/set_mode/likninger">Likninger</a>
-<a href="/set_mode/algebra">Algebra</a>
-<a href="/set_mode/brok">Brøk</a>
-
-<h4>Level</h4>
-<a href="/set_level/8">8th</a>
-<a href="/set_level/9">9th</a>
-<a href="/set_level/10">10th</a>
-
-<h4>Practice</h4>
-<a href="/practice">Generate Practice</a>
-
-<h4>Other</h4>
-<a href="/clear_chat">Clear Chat</a>
-<a href="/logout">Logout</a>
+<div class="top">
+User: {{user}} | <a href="/logout" style="color:#00f5ff;">Logout</a>
 </div>
 
-<div class="main">
-<div class="topbar">
-User: {{user}} | Level: {{level}}
-</div>
+<canvas id="robotCanvas"></canvas>
 
-<h2>{{mode | capitalize}}</h2>
-
-<div class="chat">
+<div class="chatBox">
+<div class="messages">
 {% for msg in chat %}
 <div class="user">You: {{msg.user}}</div>
-<div class="bot">Tutor: {{msg.bot}}</div>
+<div class="bot">Robot: {{msg.bot}}</div>
+<script>
+speak("{{msg.bot}}");
+</script>
 {% endfor %}
-
-{% if practice_q %}
-<div class="bot">Practice: {{practice_q}}</div>
-{% endif %}
 </div>
 
 <form method="POST">
-<input name="expression" placeholder="Type math here..." required>
-<button type="submit">Solve</button>
+<input name="expression" placeholder="Ask me math..." required>
+<button type="submit">Send</button>
 </form>
-
 </div>
+
+<script>
+// ================= TEXT TO SPEECH =================
+function speak(text){
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.pitch = 0.8;
+    speech.rate = 1;
+    speech.lang = "en-US";
+    window.speechSynthesis.speak(speech);
+}
+
+// ================= 3D ROBOT =================
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById("robotCanvas"), alpha:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshStandardMaterial({color:0x00f5ff});
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+
+const light = new THREE.PointLight(0xffffff,1);
+light.position.set(5,5,5);
+scene.add(light);
+
+camera.position.z = 3;
+
+function animate(){
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render(scene,camera);
+}
+animate();
+</script>
 
 </body>
 </html>

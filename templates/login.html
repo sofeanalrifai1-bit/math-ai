@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Math AI Login</title>
+<title>Robot Math AI</title>
 <style>
 body{
     margin:0;
@@ -9,10 +9,11 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    background:linear-gradient(-45deg,#0f172a,#1e293b,#0ea5e9,#9333ea);
+    background:linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#0f2027);
     background-size:400% 400%;
     animation:gradient 15s ease infinite;
     font-family:Arial;
+    color:white;
 }
 @keyframes gradient{
 0%{background-position:0% 50%}
@@ -20,36 +21,47 @@ body{
 100%{background-position:0% 50%}
 }
 .box{
-    background:white;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
     padding:40px;
     border-radius:20px;
     text-align:center;
-    width:300px;
+    width:320px;
 }
 input{
     width:100%;
     padding:12px;
-    margin:10px 0;
+    margin:15px 0;
+    border:none;
+    border-radius:8px;
 }
 button{
-    padding:10px 20px;
-    background:#0ea5e9;
+    padding:12px 20px;
+    background:#00f5ff;
     border:none;
-    color:white;
     border-radius:8px;
     cursor:pointer;
 }
-a{display:block;margin-top:10px;}
+.made{
+    position:absolute;
+    bottom:10px;
+    left:15px;
+    font-size:12px;
+    opacity:0.6;
+}
 </style>
 </head>
 <body>
 <div class="box">
-<h2>Math AI Tutor</h2>
+<h2>🤖 Robot Math AI</h2>
 <form method="POST">
 <input name="username" placeholder="Enter name" required>
-<button type="submit">Login</button>
+<button type="submit">Enter</button>
 </form>
-<a href="/skip">Skip Login</a>
+<a href="/skip" style="color:white;">Skip</a>
 </div>
+
+<div class="made">Made by Sofean</div>
+
 </body>
 </html>
