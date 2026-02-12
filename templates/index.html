@@ -1,35 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" href="/static/style.css">
-<title>Math AI</title>
-</head>
-<body>
+@app.route("/", methods=["GET", "POST"])
+def index():
 
-<div class="top">
-<a href="/set_language/en">🇬🇧</a>
-<a href="/set_language/no">🇳🇴</a>
-|
-<a href="/clear">{{t("clear")}}</a>
-|
-<a href="/logout">{{t("logout")}}</a>
-</div>
+    # If not logged in → go to login
+    if "user" not in session:
+        return redirect("/login")
 
-<div class="container">
-<h2>{{t("welcome")}}, {{user}}</h2>
+    # Make sure chat exists
+    if "chat" not in session:
+        session["chat"] = []
 
-{% for msg in chat %}
-<p><b>You:</b> {{msg.user}}</p>
-<p><b>AI:</b><pre>{{msg.bot}}</pre></p>
-<hr>
-{% endfor %}
+    if request.method == "POST":
+        expression = request.form.get("expression")
 
-<form method="POST">
-<input name="expression" placeholder="{{t('placeholder')}}" required>
-<button type="submit">{{t("solve")}}</button>
-</form>
+        if expression:
+            answer = solve_math(expression)
 
-</div>
+            # IMPORTANT FIX: re-assign session
+            chat = session.get("chat", [])
+            chat.append({
+                "user": expression,
+                "bot": answer
+            })
 
-</body>
-</html>
+            session["chat"] = chat   # <-- THIS FIXES 400 ERROR
+
+    return render_template(
+        "index.html",
+        chat=session.get("chat", []),
+        user=session.get("user"),
+        t=t
+    )
