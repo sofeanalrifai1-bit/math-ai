@@ -30,7 +30,7 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 40px 20px 120px 20px;
+            padding: 30px 20px 180px 20px;
             max-width: 800px;
             margin: 0 auto;
             width: 100%;
@@ -44,6 +44,7 @@
             padding: 14px 18px;
             border-radius: 16px;
             animation: fadeIn 0.2s ease-in-out;
+            white-space: pre-line;
         }
 
         .user {
@@ -63,12 +64,44 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .toolbar-wrapper {
+            position: fixed;
+            bottom: 80px;
+            width: 100%;
+            background: #111827;
+            padding: 10px 0;
+            border-top: 1px solid #1f2937;
+        }
+
+        .math-toolbar {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .math-toolbar button {
+            background: #1e293b;
+            color: white;
+            border: 1px solid #374151;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .math-toolbar button:hover {
+            background: #2563eb;
+        }
+
         .input-wrapper {
             position: fixed;
             bottom: 0;
             width: 100%;
-            background: linear-gradient(to top, #0f172a 70%, transparent);
+            background: #0f172a;
             padding: 20px;
+            border-top: 1px solid #1f2937;
         }
 
         .input-box {
@@ -93,7 +126,7 @@
             border-color: #2563eb;
         }
 
-        button {
+        button.send-btn {
             padding: 12px 22px;
             border-radius: 25px;
             border: none;
@@ -103,17 +136,8 @@
             cursor: pointer;
         }
 
-        button:hover {
+        button.send-btn:hover {
             opacity: 0.9;
-        }
-
-        .logout {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 14px;
-            color: #f87171;
-            text-decoration: none;
         }
     </style>
 </head>
@@ -122,7 +146,6 @@
 
 <header>
     🤖 Math AI
-    <a href="/logout" class="logout">Logout</a>
 </header>
 
 <div class="chat-container" id="chat">
@@ -136,14 +159,35 @@
     {% endfor %}
 </div>
 
+<!-- Math Toolbar -->
+<div class="toolbar-wrapper">
+    <div class="math-toolbar">
+        <button type="button" onclick="insert('+')">+</button>
+        <button type="button" onclick="insert('-')">−</button>
+        <button type="button" onclick="insert('*')">×</button>
+        <button type="button" onclick="insert('/')">÷</button>
+        <button type="button" onclick="insert('^')">^</button>
+        <button type="button" onclick="insert('(')">(</button>
+        <button type="button" onclick="insert(')')">)</button>
+    </div>
+</div>
+
+<!-- Input -->
 <form method="POST" class="input-wrapper">
     <div class="input-box">
-        <input type="text" name="expression" placeholder="Ask a math question... 3n+3n or 2n+5=15" required>
-        <button type="submit">Send</button>
+        <input type="text" name="expression" placeholder="Skriv matte her... f.eks 3n+3n eller 2n+5=15" required>
+        <button type="submit" class="send-btn">Send</button>
     </div>
 </form>
 
 <script>
+    function insert(symbol) {
+        const input = document.querySelector('input[name="expression"]');
+        input.value += symbol;
+        input.focus();
+    }
+
+    // Auto scroll to bottom
     const chat = document.getElementById("chat");
     chat.scrollTop = chat.scrollHeight;
 </script>
