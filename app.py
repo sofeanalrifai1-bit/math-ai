@@ -8,6 +8,8 @@ app.secret_key = "supersecretkey"
 n = symbols('n')
 
 
+# -------- LOGIN --------
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -26,6 +28,8 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+
+# -------- MAIN --------
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -46,8 +50,10 @@ def home():
             user_input = user_input.replace("x", "*")
             user_input = user_input.replace("X", "*")
 
+            # -------- LIKNINGER --------
             if "=" in user_input:
                 left, right = user_input.split("=")
+
                 left_expr = parse_expr(left)
                 right_expr = parse_expr(right)
 
@@ -56,18 +62,42 @@ def home():
                     solution = solve(equation, n)
 
                     if solution:
-                        result = f"Løsning: n = {solution[0]}"
+                        explanation = f"""
+Steg 1: Start med likningen  
+{original_input}
+
+Steg 2: Flytt alt over på én side  
+{left_expr} - ({right_expr}) = 0
+
+Steg 3: Løs for n  
+n = {solution[0]}
+
+Svar: n = {solution[0]}
+"""
+                        result = explanation
                     else:
-                        result = "Ingen løsning funnet"
+                        result = "Ingen løsning funnet."
                 else:
-                    result = f"Svar: {left_expr == right_expr}"
+                    result = f"Likningen er {'Sann' if left_expr == right_expr else 'Usann'}"
+
+            # -------- VANLIG UTTRYKK --------
             else:
                 expr = parse_expr(user_input)
                 simplified = simplify(expr)
-                result = f"Svar: {simplified}"
+
+                explanation = f"""
+Steg 1: Opprinnelig uttrykk  
+{original_input}
+
+Steg 2: Forenkle / samle ledd  
+= {simplified}
+
+Svar: {simplified}
+"""
+                result = explanation
 
         except:
-            result = "Ugyldig uttrykk"
+            result = "Ugyldig uttrykk."
 
         session["chat"].append({
             "user": original_input,
@@ -76,10 +106,12 @@ def home():
 
         session.modified = True
 
-    return render_template("index.html",
-                           chat=session.get("chat", []),
-                           username=session["username"])
+    return render_template(
+        "index.html",
+        chat=session.get("chat", []),
+        username=session["username"]
+    )
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
