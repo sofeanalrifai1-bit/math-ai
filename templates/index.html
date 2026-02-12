@@ -2,70 +2,151 @@
 <html>
 <head>
     <title>Math AI</title>
+
     <style>
-        body {
-            background-color: #0f172a;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 100px;
+        * {
+            box-sizing: border-box;
         }
 
-        h1 {
-            font-size: 40px;
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            padding: 20px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px 120px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 16px;
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .user {
+            background-color: #2563eb;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot {
+            background-color: #1e293b;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-wrapper {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #0f172a 70%, transparent);
+            padding: 20px;
+        }
+
+        .input-box {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
         }
 
         input {
-            padding: 10px;
-            width: 300px;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 25px;
+            border: 1px solid #1f2937;
+            background-color: #1e293b;
+            color: white;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
         }
 
         button {
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 12px 22px;
+            border-radius: 25px;
             border: none;
-            background-color: #3b82f6;
+            background-color: #22c55e;
             color: white;
-            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
         }
 
         button:hover {
-            background-color: #2563eb;
+            opacity: 0.9;
         }
 
-        .card {
-            margin-top: 30px;
-            background-color: #1e293b;
-            padding: 20px;
-            border-radius: 12px;
-            display: inline-block;
-            width: 400px;
+        .logout {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 14px;
+            color: #f87171;
+            text-decoration: none;
         }
     </style>
 </head>
+
 <body>
 
-<h1>🚀 Math AI</h1>
+<header>
+    🤖 Math AI
+    <a href="/logout" class="logout">Logout</a>
+</header>
 
-<form method="POST">
-    <input type="text" name="problem" placeholder="Enter equation like 2*x+5=15" required>
-    <br><br>
-    <button type="submit">Solve</button>
+<div class="chat-container" id="chat">
+    {% for message in chat %}
+        <div class="message user">
+            {{ message.user }}
+        </div>
+        <div class="message bot">
+            {{ message.bot }}
+        </div>
+    {% endfor %}
+</div>
+
+<form method="POST" class="input-wrapper">
+    <div class="input-box">
+        <input type="text" name="expression" placeholder="Ask a math question... 3n+3n or 2n+5=15" required>
+        <button type="submit">Send</button>
+    </div>
 </form>
 
-{% if solution %}
-<div class="card">
-    <h2>Answer:</h2>
-    <p>{{ solution }}</p>
-
-    <h3>Explanation:</h3>
-    <pre>{{ steps }}</pre>
-</div>
-{% endif %}
+<script>
+    const chat = document.getElementById("chat");
+    chat.scrollTop = chat.scrollHeight;
+</script>
 
 </body>
 </html>

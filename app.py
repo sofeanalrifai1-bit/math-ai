@@ -1,37 +1,85 @@
-from flask import Flask, render_template, request
-from sympy import symbols, Eq, solve, sympify
+from flask import Flask, render_template, request, session, redirect, url_for
+from sympy import symbols, solve, simplify
+from sympy.parsing.sympy_parser import parse_expr
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
+
+n = symbols('n')
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+
+        if username.strip() != "":
+            session["username"] = username
+            session["chat"] = []
+            return redirect(url_for("home"))
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    solution = None
-    steps = None
+
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if "chat" not in session:
+        session["chat"] = []
 
     if request.method == "POST":
-        problem = request.form["problem"]
-        x = symbols('x')
+
+        original_input = request.form["expression"]
+        user_input = original_input
 
         try:
-            left, right = problem.split("=")
-            equation = Eq(sympify(left), sympify(right))
-            solution_value = solve(equation, x)
+            user_input = user_input.replace("^", "**")
+            user_input = user_input.replace("x", "*")
+            user_input = user_input.replace("X", "*")
 
-            solution = solution_value
-            steps = f"""
-Step 1: Start with the equation:
-{problem}
+            if "=" in user_input:
+                left, right = user_input.split("=")
+                left_expr = parse_expr(left)
+                right_expr = parse_expr(right)
 
-Step 2: Move terms to isolate x
+                if left_expr.has(n) or right_expr.has(n):
+                    equation = left_expr - right_expr
+                    solution = solve(equation, n)
 
-Step 3: Solve for x
+                    if solution:
+                        result = f"Løsning: n = {solution[0]}"
+                    else:
+                        result = "Ingen løsning funnet"
+                else:
+                    result = f"Svar: {left_expr == right_expr}"
+            else:
+                expr = parse_expr(user_input)
+                simplified = simplify(expr)
+                result = f"Svar: {simplified}"
 
-Final Answer: x = {solution_value}
-"""
         except:
-            solution = "Invalid input. Try format like 2*x+5=15"
+            result = "Ugyldig uttrykk"
 
-    return render_template("index.html", solution=solution, steps=steps)
+        session["chat"].append({
+            "user": original_input,
+            "bot": result
+        })
+
+        session.modified = True
+
+    return render_template("index.html",
+                           chat=session.get("chat", []),
+                           username=session["username"])
+
 
 if __name__ == "__main__":
     app.run(debug=True)
