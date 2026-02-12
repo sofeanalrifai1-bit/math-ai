@@ -1,164 +1,55 @@
-from flask import Flask, render_template, request, redirect, session
-import sqlite3
-from sympy import symbols, Eq, solve, simplify
-from sympy.parsing.sympy_parser import parse_expr
-
-app = Flask(__name__)
-app.secret_key = "supersecretkey123"
-
-x = symbols("x")
-
-# ========== DATABASE SETUP ==========
-
-def init_db():
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )
-    """)
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# ========== LANGUAGE SYSTEM ==========
-
-translations = {
-    "en": {
-        "welcome": "Welcome",
-        "placeholder": "Type your math problem...",
-        "clear": "Clear Chat",
-        "logout": "Logout"
-    },
-    "no": {
-        "welcome": "Velkommen",
-        "placeholder": "Skriv matteoppgave...",
-        "clear": "Tøm Chat",
-        "logout": "Logg ut"
-    }
+<!DOCTYPE html>
+<html>
+<head>
+<title>Math AI Login</title>
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(-45deg,#0f172a,#1e293b,#0ea5e9,#9333ea);
+    background-size:400% 400%;
+    animation:gradient 15s ease infinite;
+    font-family:Arial;
 }
-
-def t(key):
-    lang = session.get("lang", "en")
-    return translations[lang][key]
-
-@app.route("/set_language/<lang>")
-def set_language(lang):
-    session["lang"] = lang
-    return redirect("/")
-
-# ========== AUTH ==========
-
-@app.route("/register", methods=["GET","POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = sqlite3.connect("users.db")
-        c = conn.cursor()
-        try:
-            c.execute("INSERT INTO users (username,password) VALUES (?,?)",
-                      (username,password))
-            conn.commit()
-        except:
-            conn.close()
-            return "User already exists"
-        conn.close()
-        return redirect("/login")
-
-    return render_template("register.html")
-
-@app.route("/login", methods=["GET","POST"])
-def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = sqlite3.connect("users.db")
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username=? AND password=?",
-                  (username,password))
-        user = c.fetchone()
-        conn.close()
-
-        if user:
-            session["user"] = username
-            session["chat"] = []
-            session["lang"] = "en"
-            return redirect("/")
-        else:
-            return "Invalid login"
-
-    return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
-
-@app.route("/clear")
-def clear():
-    session["chat"] = []
-    return redirect("/")
-
-# ========== SMART MATH SOLVER ==========
-
-def solve_math(expression):
-
-    expression = expression.replace("^","**")
-
-    try:
-        if "=" in expression:
-            left,right = expression.split("=")
-            eq = Eq(parse_expr(left), parse_expr(right))
-            solution = solve(eq,x)
-
-            explanation = f"""
-Step 1: Move all terms to one side.
-Step 2: Solve equation.
-Solution: x = {solution}
-"""
-            return explanation
-
-        else:
-            result = simplify(parse_expr(expression))
-
-            explanation = f"""
-Step 1: Simplify the expression.
-Step 2: Combine like terms.
-Result: {result}
-"""
-            return explanation
-
-    except:
-        return "I could not understand the math problem."
-
-# ========== MAIN ==========
-
-@app.route("/", methods=["GET","POST"])
-def index():
-
-    if "user" not in session:
-        return redirect("/login")
-
-    if request.method == "POST":
-        expression = request.form["expression"]
-        answer = solve_math(expression)
-
-        session["chat"].append({
-            "user": expression,
-            "bot": answer
-        })
-
-    return render_template("index.html",
-                           chat=session.get("chat",[]),
-                           user=session["user"],
-                           t=t)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+@keyframes gradient{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+.box{
+    background:white;
+    padding:40px;
+    border-radius:20px;
+    text-align:center;
+    width:300px;
+}
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+}
+button{
+    padding:10px 20px;
+    background:#0ea5e9;
+    border:none;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+}
+a{display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>Math AI Tutor</h2>
+<form method="POST">
+<input name="username" placeholder="Enter name" required>
+<button type="submit">Login</button>
+</form>
+<a href="/skip">Skip Login</a>
+</div>
+</body>
+</html>
