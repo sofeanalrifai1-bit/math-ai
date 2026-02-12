@@ -1,67 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Robot Math AI</title>
+<title>AI Robot Chat</title>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
 <style>
 body{
     margin:0;
-    overflow:hidden;
-    font-family:Arial;
     background:#0f2027;
+    font-family:Arial;
     color:white;
+    overflow:hidden;
 }
-#robotCanvas{
-    position:absolute;
-    top:0;
-    left:0;
-}
+
+/* Chat UI */
 .chatBox{
     position:absolute;
     bottom:20px;
     left:50%;
     transform:translateX(-50%);
     width:60%;
-    background:rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.08);
     backdrop-filter:blur(20px);
     padding:20px;
     border-radius:20px;
 }
+
+.messages{
+    max-height:300px;
+    overflow-y:auto;
+    margin-bottom:10px;
+}
+
+.user{
+    text-align:right;
+    margin:5px;
+}
+
+.bot{
+    text-align:left;
+    margin:5px;
+    color:#00f5ff;
+}
+
 input{
     width:80%;
     padding:12px;
     border:none;
     border-radius:10px;
 }
+
 button{
     padding:12px;
     border:none;
     border-radius:10px;
     background:#00f5ff;
+    cursor:pointer;
 }
-.messages{
-    max-height:200px;
-    overflow-y:auto;
-    margin-bottom:10px;
-}
-.user{ text-align:right; margin:5px; }
-.bot{ text-align:left; margin:5px; color:#00f5ff; }
+
 .top{
     position:absolute;
     top:10px;
     right:20px;
+}
+
+/* Robot canvas */
+#robotCanvas{
+    position:absolute;
+    bottom:150px;
+    left:50px;
+    width:250px;
+    height:250px;
 }
 </style>
 </head>
 <body>
 
 <div class="top">
-User: {{user}} | <a href="/logout" style="color:#00f5ff;">Logout</a>
+User: {{user}} |
+<a href="/clear" style="color:#00f5ff;">Clear</a> |
+<a href="/logout" style="color:#00f5ff;">Logout</a>
 </div>
 
 <canvas id="robotCanvas"></canvas>
 
 <div class="chatBox">
+
 <div class="messages">
 {% for msg in chat %}
 <div class="user">You: {{msg.user}}</div>
@@ -73,45 +99,85 @@ speak("{{msg.bot}}");
 </div>
 
 <form method="POST">
-<input name="expression" placeholder="Ask me math..." required>
+<input name="message" placeholder="Talk to the robot..." required>
 <button type="submit">Send</button>
 </form>
+
 </div>
 
 <script>
-// ================= TEXT TO SPEECH =================
+
+/* ================= TEXT TO SPEECH ================= */
+
+let robotTalking = false;
+
 function speak(text){
     const speech = new SpeechSynthesisUtterance(text);
-    speech.pitch = 0.8;
+    speech.pitch = 0.9;
     speech.rate = 1;
     speech.lang = "en-US";
+
+    speech.onstart = () => robotTalking = true;
+    speech.onend = () => robotTalking = false;
+
     window.speechSynthesis.speak(speech);
 }
 
-// ================= 3D ROBOT =================
+/* ================= THREE JS ROBOT ================= */
+
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({canvas:document.getElementById("robotCanvas"), alpha:true});
-renderer.setSize(window.innerWidth, window.innerHeight);
+const camera = new THREE.PerspectiveCamera(45,1,0.1,1000);
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({color:0x00f5ff});
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById("robotCanvas"),
+    alpha:true,
+    antialias:true
+});
 
-const light = new THREE.PointLight(0xffffff,1);
-light.position.set(5,5,5);
-scene.add(light);
+renderer.setSize(250,250);
+camera.position.set(0,1.2,3);
 
-camera.position.z = 3;
+const light1 = new THREE.HemisphereLight(0xffffff,0x444444,1);
+scene.add(light1);
+
+const light2 = new THREE.DirectionalLight(0xffffff,1);
+light2.position.set(3,5,2);
+scene.add(light2);
+
+let robot;
+const loader = new THREE.GLTFLoader();
+
+loader.load(
+"https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
+function(gltf){
+robot = gltf.scene;
+robot.scale.set(0.6,0.6,0.6);
+scene.add(robot);
+}
+);
+
+let clock = new THREE.Clock();
 
 function animate(){
-    requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-    renderer.render(scene,camera);
+requestAnimationFrame(animate);
+const time = clock.getElapsedTime();
+
+if(robot){
+robot.position.y = Math.sin(time*2)*0.05;
+robot.rotation.y += 0.005;
+
+if(robotTalking){
+robot.scale.set(0.65,0.65,0.65);
+}else{
+robot.scale.set(0.6,0.6,0.6);
 }
+}
+
+renderer.render(scene,camera);
+}
+
 animate();
+
 </script>
 
 </body>

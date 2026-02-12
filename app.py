@@ -1,11 +1,8 @@
 from flask import Flask, render_template, request, redirect, session
-from sympy import symbols, Eq, solve, simplify
-from sympy.parsing.sympy_parser import parse_expr
+import requests
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey123"
-
-x = symbols("x")
 
 # ================= LOGIN =================
 
@@ -17,18 +14,39 @@ def login():
         return redirect("/")
     return render_template("login.html")
 
-
 @app.route("/skip")
 def skip():
     session["user"] = "Guest"
     session["chat"] = []
     return redirect("/")
 
-
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
+
+@app.route("/clear")
+def clear():
+    session["chat"] = []
+    return redirect("/")
+
+# ================= AI CHAT =================
+
+def ask_ai(message):
+
+    API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
+
+    response = requests.post(API_URL, json={
+        "inputs": message
+    })
+
+    if response.status_code == 200:
+        try:
+            return response.json()[0]["generated_text"]
+        except:
+            return "I couldn't process that."
+    else:
+        return "AI is busy right now. Try again."
 
 # ================= MAIN =================
 
@@ -39,23 +57,12 @@ def index():
         return redirect("/login")
 
     if request.method == "POST":
-        expression = request.form["expression"]
-        expression_fixed = expression.replace("^", "**")
+        message = request.form["message"]
 
-        try:
-            if "=" in expression_fixed:
-                left, right = expression_fixed.split("=")
-                eq = Eq(parse_expr(left), parse_expr(right))
-                solution = solve(eq, x)
-                answer = f"The solution is x equals {solution}"
-            else:
-                result = simplify(parse_expr(expression_fixed))
-                answer = f"The answer is {result}"
-        except:
-            answer = "I could not understand that math problem."
+        answer = ask_ai(message)
 
         session["chat"].append({
-            "user": expression,
+            "user": message,
             "bot": answer
         })
 
